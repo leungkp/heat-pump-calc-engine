@@ -22,7 +22,12 @@ import requests
 # which are Pandas DataFrames
 
 # The base URL to the site where the remote files are located
-base_url = 'https://github.com/alanmitchell/akwlib-export/raw/main/data/v01/'
+#base_url = 'https://github.com/alanmitchell/akwlib-export/raw/main/data/v01/'
+
+######################################################################################
+# make it to Brian's forked folder; make sure it's using "raw" in the URL, not "tree"
+base_url = 'https://github.com/leungkp/akwlib-export/raw/main/data/v01/' 
+######################################################################################
 
 # This constant controls how frequently the library goes back to the GitHub server to
 # download the freshest AkWarm data.  This timeout is only checked when the heat_pump_from_id()
@@ -186,23 +191,46 @@ def tmy_from_id(tmy_id):
     df = get_df(f'tmy3/{tmy_id}.pkl')
     return df
 
+########################################################################################
+# get ERA5 data from FIPS
+@functools.lru_cache(maxsize=50)    # caches the ERA5 dataframes cuz retrieved remotely
+def ERA5_from_id(FIPS):
+    """Returns a DataFrame of ERA5 data for the climate site identified
+    by 'FIPS'.
+    """
+    df = get_df(f'ERA5/{FIPS}.pkl')
+    return df
+########################################################################################
+
 def heating_design_temp(tmy_id):
     """Returns the heating design temperature (deg F) for the TMY3 site
     identified by 'tmy_id'.
     """
     return df_tmy_meta.loc[tmy_id].heating_design_temp
-    
+
+########################################################################################
+# # get heating design temp 
+# def heating_design_temp(FIPS):
+#     """Returns the heating design temperature (deg F) for the TMY3 site
+#     identified by 'FIPS'.
+#     """
+#     return df_ERA5_meta.loc[FIPS].heating_design_temp
+########################################################################################
+
 def refresh_data():
     """Key datasets are read in here and placed in module-level variables,
     listed below this function.
     """
+    ########################################################################################
+    global df_ERA5_meta
+    ########################################################################################
     global df_tmy_meta
     global df_city
     global df_util
     global df_heatpumps
     global df_fuel
     global last_lib_download_ts        # tracks time of last refresh
-
+    
     print('acquiring library data...')
     last_lib_download_ts = time.time()
 
@@ -211,6 +239,11 @@ def refresh_data():
 
     # read in the DataFrame that describes the available TMY3 climate files.
     df_tmy_meta = get_df('tmy3/tmy3_meta.pkl')
+
+    ########################################################################################
+    # read in the DataFrame that describes the available ERA5 climate files.
+    df_ERA5_meta = get_df('ERA5/ERA5_meta.pkl')
+    ########################################################################################
 
     # Read in the other City and Utility Excel files.
     df_city = get_df('city.pkl')
@@ -241,6 +274,9 @@ def refresh_data():
 # periodically so that any updates to the Internet-based datasets are 
 # reflected in the calculator.
 # See documentation for these variables in the refresh_data() routine.
+########################################################################################
+df_ERA5_meta = None
+########################################################################################
 df_tmy_meta = None
 df_city = None
 df_util = None

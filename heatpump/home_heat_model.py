@@ -149,8 +149,13 @@ class HomeHeatModel(object):
         # Do as much processing at this level using array operations, as
         # opposed to processing within the hourly loop further below.
         
-        df_tmy = lib.tmy_from_id(self.city.TMYid)
-        s.df_hourly = df_tmy[['db_temp']].copy()
+        ########################################################################################
+        # df_tmy = lib.tmy_from_id(self.city.TMYid)
+        # s.df_hourly = df_tmy[['db_temp']].copy()
+        df_ERA5 = lib.ERA5_from_id(self.city.FIPS)
+        s.df_hourly = df_ERA5[['db_temp']].copy()
+        ########################################################################################
+
         # and now make a shorthand variable for this DataFrame
         dfh = s.df_hourly
         dfh['day_of_year'] = dfh.index.dayofyear
